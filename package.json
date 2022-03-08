@@ -1,0 +1,32 @@
+{
+	"name": "@glhd/omniponent",
+	"description": "Build universal web components in JSX",
+	"author": "Chris Morrell",
+	"version": "0.0.1",
+	"main": "index.js",
+	"exports": {
+		".": "./index.js",
+		"./config": "./config/index.js"
+	},
+	"bin": {
+		"omniponent": "index.js"
+	},
+	"type": "module",
+	"dependencies": {
+		"esbuild": "^0.14.25",
+		"gzip-size": "^7.0.0",
+		"preact": "^10.6.6",
+		"preact-custom-element": "^4.2.1",
+		"react": "^17.0.2"
+	},
+	"devDependencies": {},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/glhd/omniponent.git"
+	},
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/glhd/omniponent/issues"
+	},
+	"homepage": "https://github.com/glhd/omniponent#readme"
+}
