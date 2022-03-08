@@ -3,18 +3,19 @@
 	"description": "Build universal web components in JSX",
 	"author": "Chris Morrell",
 	"version": "0.0.1",
-	"main": "index.js",
+	"main": "index.mjs",
 	"exports": {
-		".": "./index.js",
-		"./config": "./config/index.js"
+		".": "./index.mjs",
+		"./config": "./src/config.mjs"
 	},
 	"bin": {
-		"omniponent": "index.js"
+		"omniponent": "index.mjs"
 	},
-	"type": "module",
 	"dependencies": {
+		"@npmcli/config": "^4.0.1",
 		"esbuild": "^0.14.25",
 		"gzip-size": "^7.0.0",
+		"npm": "^8.5.3",
 		"preact": "^10.6.6",
 		"preact-custom-element": "^4.2.1",
 		"react": "^17.0.2"
