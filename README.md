@@ -25,6 +25,9 @@ Update your `package.json` file with:
   "config": {
 	  // Whatever you want as the global function name on web
 	  "componentName": "HelloComponent",
+	
+	  // The tag name for your Web Component (must contain hyphen)
+	  "componentTag": "hello-component",
     
 	  // The name of props your component accepts (necessary for web components)
 	  "propNames": [

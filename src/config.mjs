@@ -1,6 +1,7 @@
-import { dirname, resolve } from 'path';
+import { dirname, resolve, parse } from 'path';
 import { writeFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
+import preactCompatPlugin from './plugins/preact-compat.mjs';
 
 let __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -28,6 +29,12 @@ export const config = {
 		return this;
 	},
 	
+	setWebComponentTag(name) {
+		this.builds['web-component'].define.TAG_NAME = JSON.stringify(name);
+		
+		return this;
+	},
+	
 	async applyPackage(pkg) {
 		if ('main' in pkg) {
 			await this.setFilename(resolve(process.cwd(), pkg.main));
@@ -36,6 +43,10 @@ export const config = {
 		if ('config' in pkg) {
 			if ('componentName' in pkg.config) {
 				this.setName(pkg.config.componentName);
+			}
+			
+			if ('componentTag' in pkg.config) {
+				this.setWebComponentTag(pkg.config.componentTag);
 			}
 			
 			if ('propNames' in pkg.config) {
@@ -47,18 +58,40 @@ export const config = {
 	},
 	
 	build() {
-		return Object.values(this.builds).map(({ recipes, ...build }) => {
+		return Object.values(this.builds).reduce((carry, buildConfig) => {
+			let { recipes, exports, ...build } = buildConfig;
+			
 			for (let recipe of recipes) {
-				build = { ...config.recipes[recipe], ...build };
+				build = { ...this.recipes[recipe], ...build };
 			}
 			
-			return build;
-		});
+			if (build.minify) {
+				carry.configs.push({ ...build, minify: false, keepNames: true });
+				
+				const outfile = parse(build.outfile);
+				build.outfile = `${outfile.dir}/${outfile.name}.min${outfile.ext}`;
+				build.keepNames = false;
+			}
+			
+			carry.configs.push(build);
+			
+			for (let path of exports) {
+				const key = 'cjs' === build.format
+					? 'require'
+					: 'default';
+				
+				carry.exports[path] ??= {};
+				carry.exports[path][key] = build.outfile;
+			}
+			
+			return carry;
+		}, { exports: {}, configs: [] });
 	},
 	
 	recipes: {
 		defaults: {
 			bundle: true,
+			// keepNames: true,
 			minify: false,
 			platform: 'browser',
 			loader: {
@@ -77,6 +110,7 @@ export const config = {
 		preact: {
 			jsxFactory: 'h',
 			jsxFragment: 'Fragment',
+			plugins: [preactCompatPlugin],
 		},
 		react: {
 			jsxFactory: 'React.createElement',
@@ -85,44 +119,51 @@ export const config = {
 	},
 	builds: {
 		'preact/cjs': {
+			exports: ['./preact'],
 			recipes: ['defaults', 'preact', 'cjs'],
 			inject: [],
 			entryPoints: [`${ __dirname }/entrypoints/component.mjs`],
-			outfile: 'dist/cjs/preact.js',
+			outfile: 'dist/preact.cjs.js',
 		},
 		'preact/esm': {
+			exports: ['./preact'],
 			recipes: ['defaults', 'preact', 'esm'],
 			inject: [],
 			entryPoints: [`${ __dirname }/entrypoints/component.mjs`],
-			outfile: 'dist/esm/preact.js',
+			outfile: 'dist/preact.mjs',
 		},
 		'react/cjs': {
+			exports: ['./react'],
 			recipes: ['defaults', 'react', 'cjs'],
 			inject: [],
 			entryPoints: [`${ __dirname }/entrypoints/component.mjs`],
-			outfile: 'dist/esm/react.js',
+			outfile: 'dist/react.cjs.js',
 		},
 		'react/esm': {
+			exports: ['./', './react'],
 			recipes: ['defaults', 'react', 'esm'],
 			inject: [],
 			entryPoints: [`${ __dirname }/entrypoints/component.mjs`],
-			outfile: 'dist/esm/react.js',
+			outfile: 'dist/react.mjs',
 		},
 		'web-component': {
+			exports: ['./web-component'],
 			recipes: ['defaults', 'preact'],
 			inject: [`${ __dirname }/shims/preact.mjs`],
 			entryPoints: [`${ __dirname }/entrypoints/web-component.mjs`],
-			outfile: 'dist/web-component/index.js',
+			outfile: 'dist/web-component.js',
 			minify: true,
 			define: {
+				TAG_NAME: 'omniponent-web-component',
 				PROP_NAMES: [],
 			},
 		},
 		'browser': {
+			exports: ['./browser'],
 			recipes: ['defaults', 'preact'],
 			inject: [`${ __dirname }/shims/preact.mjs`],
 			entryPoints: [`${ __dirname }/entrypoints/browser.js`],
-			outfile: 'dist/browser/index.js',
+			outfile: 'dist/browser.js',
 			globalName: '',
 			minify: true,
 		},

@@ -13,6 +13,8 @@
 	},
 	"dependencies": {
 		"@npmcli/config": "^4.0.1",
+		"brotli-size": "^4.0.0",
+		"columnify": "^1.6.0",
 		"esbuild": "^0.14.25",
 		"gzip-size": "^7.0.0",
 		"npm": "^8.5.3",

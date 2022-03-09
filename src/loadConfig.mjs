@@ -1,8 +1,10 @@
-import { config } from './config.mjs';
-import { access } from 'fs/promises';
+import { access, readFile } from 'fs/promises';
 import { constants } from 'fs';
+import { config } from './config.mjs';
 
-export default async function loadConfig(pkg) {
+export default async function loadConfig() {
+	const pkg = await getPackage();
+	
 	await config.applyPackage(pkg);
 	
 	await applyCustomConfiguration();
@@ -10,7 +12,18 @@ export default async function loadConfig(pkg) {
 	return config.build();
 }
 
-export async function applyCustomConfiguration()
+async function getPackage() {
+	const filename = `${ process.cwd() }/package.json`;
+	
+	try {
+		return JSON.parse(await readFile(filename));
+	} catch {
+		console.error('No package.json found!');
+		process.exit(1);
+	}
+}
+
+async function applyCustomConfiguration()
 {
 	const filename = `${ process.cwd() }/.omniponent.js`;
 	
