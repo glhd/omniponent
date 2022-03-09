@@ -7,12 +7,12 @@ let __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const config = {
 	async setFilename(filename) {
-		Object.keys(this.builds).forEach(key => {
-			this.builds[key].inject.push(filename);
-		});
-		
 		const componentFile = resolve(__dirname, '..', '__component__.mjs');
 		await writeFile(componentFile, `import Component from ${ JSON.stringify(filename) };\nexport default Component;`);
+		
+		// Object.keys(this.builds).forEach(key => {
+		// 	this.builds[key].inject.push(componentFile);
+		// });
 		
 		return this;
 	},
@@ -108,13 +108,11 @@ export const config = {
 			format: 'cjs',
 		},
 		preact: {
-			jsxFactory: 'h',
-			jsxFragment: 'Fragment',
+			jsxFactory: 'preact.h',
+			jsxFragment: 'preact.Fragment',
 			plugins: [preactCompatPlugin],
 		},
 		react: {
-			jsxFactory: 'React.createElement',
-			jsxFragment: 'React.Fragment',
 		}
 	},
 	builds: {
@@ -154,6 +152,8 @@ export const config = {
 			outfile: 'dist/web-component.js',
 			minify: true,
 			define: {
+				'React.createElement': 'h',
+				'React.Fragment': 'Fragment',
 				TAG_NAME: 'omniponent-web-component',
 				PROP_NAMES: [],
 			},

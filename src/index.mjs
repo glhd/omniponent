@@ -12,9 +12,6 @@ export default async () => {
 	
 	const results = await Promise.all(configs.map(async (config) => {
 		await esbuild.build(config);
-		const size = bytesToSize((await stat(config.outfile)).size);
-		const gzipped = bytesToSize(await gzipSizeFromFile(config.outfile));
-		const brotli = bytesToSize(await brotliSizeFromFile(config.outfile));
 		
 		return { 
 			File: `${config.outfile}`,
@@ -28,10 +25,6 @@ export default async () => {
 		headingTransform: heading => heading,
 		columnSplitter: '   ',
 	}));
-	
-	// results.forEach(({ config, size }) => {
-	// 	console.log(`✅ ${ config.outfile.padEnd(length, ' ') } [ ${ size } ]`);
-	// });
 	
 	console.log(`\nPlease update your package.json "exports" to:\n\n${ JSON.stringify(exports, null, 2) }\n`);
 };
